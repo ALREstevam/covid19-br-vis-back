@@ -4,7 +4,7 @@ Using data from [github.com/wcota/covid19br](https://github.com/wcota/covid19br)
 
 **Note:** this is a personal project  and I'm not a specialist either in data visualization or in disease spreading, so, take it with a grain of salt.
 
-
+**Deployed at:** [https://cvid19-back.herokuapp.com/](https://cvid19-back.herokuapp.com/)
 
 ![br1](README.assets/br1-1587419459773.gif)
 
