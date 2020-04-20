@@ -1,4 +1,4 @@
-# COVID-19 Brazil - data visualization
+# COVID-19 Brazil - data visualization (back-end)
 
 Using data from [github.com/wcota/covid19br](https://github.com/wcota/covid19br) this project intends to visually show data about the **COVID-19**  in Brazil.
 
