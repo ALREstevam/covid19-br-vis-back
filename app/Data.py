@@ -38,7 +38,7 @@ class WcotaCsv:
         '''
         Generates data related to IBGE's city id
         '''
-        with open('./static/ufcapitalIBGEcode.json') as json_file:
+        with open('./app/static/ufcapitalIBGEcode.json') as json_file:
             capitals = json.load(json_file)
 
         df_ibge = WcotaCsv.df(self.IBGE_CSV)
