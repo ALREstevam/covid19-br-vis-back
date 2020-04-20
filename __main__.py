@@ -6,12 +6,15 @@ if __name__ == "__main__":
     from os.path import join, dirname
     from dotenv import load_dotenv
     from waitress import serve
+    import os
     
 
     def get_env_vars():
         dotenv_path = join(dirname(__file__), '.env')
         load_dotenv(dotenv_path)
-        return os.getenv('PORT'), os.getenv('RUN_MODE'), os.getenv('HOST')
+        return os.environ['PORT'] or os.getenv('PORT'),\
+            os.environ['RUN_MODE'] or os.getenv('RUN_MODE'),\
+            os.environ['HOST'] or os.getenv('HOST')
     
     def display_env_vars():
         port, run_mode, host = get_env_vars()
