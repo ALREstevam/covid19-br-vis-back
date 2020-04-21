@@ -12,6 +12,14 @@ import numpy as np
 import requests
 import time
 import os
+from timeloop import Timeloop
+from datetime import timedelta
+
+tl = Timeloop()
+def update_files_every(path_url_tuples, seconds=100):
+    for tup in path_url_tuples:
+        (lambda: RequestFileFallback.download(tup[0], tup[1]))()
+        tl.job(interval=timedelta(seconds=seconds))(lambda: RequestFileFallback.download(tup[0], tup[1]))
 
 
 class RequestFileFallback:
@@ -22,7 +30,7 @@ class RequestFileFallback:
 
     @staticmethod
     def url_df(url):
-        print(f'[GET] PD_READ_CSV_ONLINE {url}')
+        print(f'[PD_READ_CSV_ONLINE] {url}')
         return pd.read_csv(url)
 
     @staticmethod
@@ -45,7 +53,7 @@ class RequestFileFallback:
         return RequestFileFallback.file_df(path)
 
     @staticmethod
-    def download_or_fallback(url, path, max_age=60*60):
+    def download_or_fallback(url, path, max_age=60 * 60 * 3):
         if not RequestFileFallback.file_exists(path) or RequestFileFallback.file_age(path) > max_age:
             return RequestFileFallback.download_to_df(url, path)
         try:
@@ -53,6 +61,15 @@ class RequestFileFallback:
         except:
             return RequestFileFallback.download_to_df(url, path)
 
+    @staticmethod
+    def read_or_fallback(url, path, max_age):
+
+        if RequestFileFallback.file_exists(path) and RequestFileFallback.file_age(path) < max_age:
+            print('READING FILE...')
+            return RequestFileFallback.file_df(path)
+        else:
+            print('DOWNLOADING...')
+            return RequestFileFallback.download_to_df(url, path)
 
 pd.set_option('display.max_columns', None)
 pd.set_option('display.max_rows', 100)
@@ -66,35 +83,28 @@ class WcotaCsv:
         '''
         Defines base urls
         '''
-        self.WCOTA_CSV = 'https://raw.githubusercontent.com/wcota/covid19br/master/cases-brazil-cities-time_changesOnly.csv'
-        self.WCOTA_CITIES_TIME_CSV = 'https://raw.githubusercontent.com/wcota/covid19br/master/cases-brazil-cities-time.csv'
-        self.IBGE_CSV = 'https://raw.githubusercontent.com/kelvins/Municipios-Brasileiros/master/csv/municipios.csv'
-        self.IBGE_CSV_PATH = './app/static/municipios.csv'
+        self.WCOTA_CHANGES_ONLY_URL = 'https://raw.githubusercontent.com/wcota/covid19br/master/cases-brazil-cities-time_changesOnly.csv'
+        self.WCOTA_CHANGES_ONLY_FILE = './app/static/WCOTA_CITIES_TIME_CHANGES_ONLY_CSV.csv'
+        
+
+        self.WCOTA_CITIES_TIME_URL = 'https://raw.githubusercontent.com/wcota/covid19br/master/cases-brazil-cities-time.csv'
+        self.WCOTA_CITIES_TIME_FILE = './app/static/WCOTA_CITIES_TIME_CSV.csv'
+        
+        
+        self.IBGE_URL = 'https://raw.githubusercontent.com/kelvins/Municipios-Brasileiros/master/csv/municipios.csv'
+        self.IBGE_FILE = './app/static/municipios.csv'
+
+        
     
     @staticmethod
-    @memorize(timeout=60 * 60)
-    def df(url, path):
+    def df(url, path, max_age=60 * 60 * 5):
         '''
         Downloads a csv file and convers it to a Pandas Dataframe
         '''
-        return RequestFileFallback.download_or_fallback(url, path, 60 * 60 * 5)
+        return RequestFileFallback.read_or_fallback(url, path, max_age)
 
 
-    @staticmethod
-    @memorize(timeout=60 * 60)
-    def df_from_file(path, url):
-        '''
-        Opens a CSV file and converts it to a datraframe
-        '''
-        try:
-            return pd.read_csv(path)
-        except:
-            try: 
-                return WcotaCsv.df(url)
-            except Exception as e:
-                raise(e)
 
-    @memorize(timeout=60 * 60)
     def ibge_data(self):
         '''
         Generates data related to IBGE's city id
@@ -102,7 +112,7 @@ class WcotaCsv:
         with open('./app/static/ufcapitalIBGEcode.json') as json_file:
             capitals = json.load(json_file)
 
-        df_ibge = WcotaCsv.df_from_file(self.IBGE_CSV_PATH, self.IBGE_CSV) 
+        df_ibge = WcotaCsv.df(self.IBGE_URL, self.IBGE_FILE, 60*60*10) 
         df_ibge.set_index('codigo_ibge', inplace=True)
 
         return df_ibge, capitals
@@ -123,8 +133,7 @@ class WcotaCsv:
             return df_ibge.loc[ code(row) ].longitude
 
         return lat, long
-
-
+    
     @memorize(timeout=60 * 60)
     def default_df(self, url, save_path):
         df_ibge, capitals = self.ibge_data()
@@ -137,29 +146,28 @@ class WcotaCsv:
         df.insert(len(df.columns), 'long', np.nan)
 
         df.loc[:, 'date'] = df.apply(lambda row: dateutil.parser.parse(row['date']), axis=1)
-
-        df.loc[:, 'lat'] = df.apply(lat, axis=1) 
+        df.loc[:, 'lat'] = df.apply(lat, axis=1)
         df.loc[:, 'long'] = df.apply(long, axis=1) 
+        
+        print(f'DATAFRAME GENERATED FROM {url} or {save_path.split("/")[-1]}')
 
         return df
 
-    @memorize(timeout=60 * 60)
     def generate_cities_time_df(self):
         '''
-        Generates a Datafraeme from `self.WCOTA_CSV`
+        Generates a Dataframe from `self.WCOTA_CSV`
         '''
-        return self.default_df(self.WCOTA_CITIES_TIME_CSV, './app/static/WCOTA_CITIES_TIME_CSV.csv')
+        return self.default_df(self.WCOTA_CHANGES_ONLY_URL, self.WCOTA_CHANGES_ONLY_FILE)
 
-    @memorize(timeout=60 * 60)
     def generate_df(self):
         '''
         Generates a Datafraeme from `self.WCOTA_CITIES_TIME_CSV`
         '''
-        return self.default_df(self.WCOTA_CSV, './app/static/WCOTA_CITIES_TIME_CSV.csv')
+        return self.default_df(self.WCOTA_CITIES_TIME_URL, self.WCOTA_CITIES_TIME_FILE)
 
-
+    @staticmethod
     @memorize(timeout=60 * 60)
-    def df_to_data(self, df_getter):
+    def df_to_data(df_getter):
         '''
         Runs a function that generates a Pandas Dataframe and converts it to standard python data structures
         that can be converted JSON
@@ -184,11 +192,11 @@ class WcotaCsv:
                     'long': row['long'],
                 },
             })
-
         return result
 
+    @staticmethod
     @memorize(timeout=60 * 60)
-    def df_to_geojson_data(self, df_getter):
+    def df_to_geojson_data(df_getter):
         '''
         Runs a function that generates a Pandas Dataframe and converts it to standard python data structures
         that when converted to JSON are compliant with geojson standards 
@@ -222,28 +230,40 @@ class WcotaCsv:
             'features': features 
         }
 
+
+    def exercise(self):
+        self.daily_geojson()
+        self.daily_data()
+        self.cases_geojson()
+        self.cases_data()
+        
+
+    @memorize(timeout=60 * 60 * 3)
     def daily_geojson(self):
         '''
         Shortcut for getting the dataframe from `self.WCOTA_CITIES_TIME_CSV` as python's standard data structures 
         that when converted to JSON are compliant with geojson standards
         '''        
-        return self.df_to_geojson_data(self.generate_cities_time_df)
+        return WcotaCsv.df_to_geojson_data(self.generate_cities_time_df)
         
+    @memorize(timeout=60 * 60 * 3)
     def daily_data(self):
         '''
         Shortcut for getting the dataframe from `self.WCOTA_CITIES_TIME_CSV` as python's standard data structures
         '''        
-        return self.df_to_data(self.generate_cities_time_df)
+        return WcotaCsv.df_to_data(self.generate_cities_time_df)
 
+    @memorize(timeout=60 * 60 * 3)
     def cases_geojson(self):
         '''
         Shortcut for getting the dataframe from `self.WCOTA_CSV` as python's standard data structures 
         that when converted to JSON are compliant with geojson standards
         '''    
-        return self.df_to_geojson_data(self.generate_df)
+        return WcotaCsv.df_to_geojson_data(self.generate_df)
         
+    @memorize(timeout=60 * 60 * 3)
     def cases_data(self):
         '''
         Shortcut for getting the dataframe from `self.WCOTA_CSV` as python's standard data structures
         ''' 
-        return self.df_to_data(self.generate_df)
+        return WcotaCsv.df_to_data(self.generate_df)

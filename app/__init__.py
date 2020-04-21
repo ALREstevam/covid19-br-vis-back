@@ -4,7 +4,7 @@ from flask.json import JSONEncoder
 from datetime import time, datetime, date
 from flask_cors import CORS
 
-from app.Data import WcotaCsv
+from app.Data import WcotaCsv, update_files_every, tl
 
 import markdown
 
@@ -38,6 +38,20 @@ app.config['JSON_AS_ASCII'] = False
 
 wcota = WcotaCsv()
 
+update_files_every([
+    (wcota.WCOTA_CHANGES_ONLY_URL, wcota.WCOTA_CHANGES_ONLY_FILE),
+    (wcota.WCOTA_CITIES_TIME_URL, wcota.WCOTA_CITIES_TIME_FILE)
+], 60*3)
+        
+update_files_every([ (wcota.IBGE_URL, wcota.IBGE_FILE) ], 60*60)
+
+tl.start(block=False)
+
+wcota.exercise()
+
+print('CACHE BUILT')
+
+
 @app.route("/", methods = ['GET'])
 def main():
     return """
@@ -54,7 +68,7 @@ def docs():
 def cities_cases():
     response_type = request.args.get('response_type')
     if response_type and response_type == 'geojson':
-        return jsonify ( wcota.cases_geojson() )
+        return jsonify ( WcotaCsv.cases_geojson() )
     else:
         return jsonify( wcota.cases_data() )
 
