@@ -50,7 +50,7 @@ def main():
 def docs():
     return get_docs()
 
-@app.route("/br/cities", methods = ['GET'])
+@app.route("/api/v1/br/cities", methods = ['GET'])
 def cities_cases():
     response_type = request.args.get('response_type')
     if response_type and response_type == 'geojson':
@@ -59,7 +59,7 @@ def cities_cases():
         return jsonify( wcota.cases_data() )
 
 
-@app.route("/br/cities-daily", methods = ['GET'])
+@app.route("/api/v1/br/cities-daily", methods = ['GET'])
 def cities_daily():
     response_type = request.args.get('response_type')
     if response_type and response_type=='geojson':
