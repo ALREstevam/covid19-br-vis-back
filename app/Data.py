@@ -8,6 +8,7 @@ import json
 import numpy.core.defchararray as npd
 from memorize import memorize
 from datetime import timezone
+import numpy as np
 
 pd.set_option('display.max_columns', None)
 pd.set_option('display.max_rows', 100)
@@ -73,11 +74,15 @@ class WcotaCsv:
         df = WcotaCsv.df(url)
         df = df [ df['state'] != 'TOTAL' ]
 
-        df.loc[:,'date'] = df.apply(lambda row: dateutil.parser.parse(row['date']), axis=1)
+        df["lat"] = np.nan
+        df["long"] = np.nan
+
+
+        df.loc[:, 'date'] = df.apply(lambda row: dateutil.parser.parse(row['date']), axis=1)
         # df.loc[(df['city'].str.startswith('INDEFINIDA/')),'city'] = ''
 
-        df['lat'] = df.apply(lat, axis=1) 
-        df['long'] = df.apply(long, axis=1) 
+        df.loc[:, 'lat'] = df.apply(lat, axis=1) 
+        df.loc[:, 'long'] = df.apply(long, axis=1) 
 
         return df
 
