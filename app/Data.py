@@ -9,6 +9,51 @@ import numpy.core.defchararray as npd
 from memorize import memorize
 from datetime import timezone
 import numpy as np
+import requests
+import time
+import os
+
+
+class RequestFileFallback:
+
+    @staticmethod
+    def file_df(path):
+        return pd.read_csv(path)
+
+    @staticmethod
+    def url_df(url):
+        print(f'[GET] PD_READ_CSV_ONLINE {url}')
+        return pd.read_csv(url)
+
+    @staticmethod
+    def download(url, out_path):
+        print(f'[GET] CSV {url}')
+        file = requests.get(url, timeout=1000)
+        open(out_path, 'wb').write(file.content)
+
+    @staticmethod
+    def file_age(filepath):
+        return time.time() - os.path.getmtime(filepath)
+
+    @staticmethod
+    def file_exists(path):
+        return os.path.isfile(path)
+
+    @staticmethod
+    def download_to_df(url, path):
+        RequestFileFallback.download(url, path)
+        return RequestFileFallback.file_df(path)
+
+    @staticmethod
+    def download_or_fallback(url, path, max_age=60*60):
+        print('FILE AGE IS', RequestFileFallback.file_age(path))
+        if not RequestFileFallback.file_exists(path) or RequestFileFallback.file_age(path) > max_age:
+            return RequestFileFallback.download_to_df(url, path)
+        try:
+            return RequestFileFallback.url_df(url)
+        except:
+            return RequestFileFallback.download_to_df(url, path)
+
 
 pd.set_option('display.max_columns', None)
 pd.set_option('display.max_rows', 100)
@@ -25,15 +70,30 @@ class WcotaCsv:
         self.WCOTA_CSV = 'https://raw.githubusercontent.com/wcota/covid19br/master/cases-brazil-cities-time_changesOnly.csv'
         self.WCOTA_CITIES_TIME_CSV = 'https://raw.githubusercontent.com/wcota/covid19br/master/cases-brazil-cities-time.csv'
         self.IBGE_CSV = 'https://raw.githubusercontent.com/kelvins/Municipios-Brasileiros/master/csv/municipios.csv'
+        self.IBGE_CSV_PATH = './app/static/municipios.csv'
     
     @staticmethod
     @memorize(timeout=60 * 60)
-    def df(url):
+    def df(url, path):
         '''
         Downloads a csv file and convers it to a Pandas Dataframe
         '''
-        print(f'DOWNLOADING {url}')
-        return pd.read_csv(url)
+        return RequestFileFallback.download_or_fallback(url, path, 60 * 60 * 5)
+
+
+    @staticmethod
+    @memorize(timeout=60 * 60)
+    def df_from_file(path, url):
+        '''
+        Opens a CSV file and converts it to a datraframe
+        '''
+        try:
+            return pd.read_csv(path)
+        except:
+            try: 
+                return WcotaCsv.df(url)
+            except Exception as e:
+                raise(e)
 
     @memorize(timeout=60 * 60)
     def ibge_data(self):
@@ -43,7 +103,7 @@ class WcotaCsv:
         with open('./app/static/ufcapitalIBGEcode.json') as json_file:
             capitals = json.load(json_file)
 
-        df_ibge = WcotaCsv.df(self.IBGE_CSV)
+        df_ibge = WcotaCsv.df_from_file(self.IBGE_CSV_PATH, self.IBGE_CSV) 
         df_ibge.set_index('codigo_ibge', inplace=True)
 
         return df_ibge, capitals
@@ -67,11 +127,11 @@ class WcotaCsv:
 
 
     @memorize(timeout=60 * 60)
-    def default_df(self, url):
+    def default_df(self, url, save_path):
         df_ibge, capitals = self.ibge_data()
         lat, long = self.lat_long_apply(df_ibge, capitals)
 
-        df = WcotaCsv.df(url)
+        df = WcotaCsv.df(url, save_path)
         df = df [ df['state'] != 'TOTAL' ]
 
         df.insert(len(df.columns), 'lat', np.nan)
@@ -89,14 +149,14 @@ class WcotaCsv:
         '''
         Generates a Datafraeme from `self.WCOTA_CSV`
         '''
-        return self.default_df(self.WCOTA_CITIES_TIME_CSV)
+        return self.default_df(self.WCOTA_CITIES_TIME_CSV, './app/static/WCOTA_CITIES_TIME_CSV.csv')
 
     @memorize(timeout=60 * 60)
     def generate_df(self):
         '''
         Generates a Datafraeme from `self.WCOTA_CITIES_TIME_CSV`
         '''
-        return self.default_df(self.WCOTA_CSV)
+        return self.default_df(self.WCOTA_CSV, './app/static/WCOTA_CITIES_TIME_CSV.csv')
 
 
     @memorize(timeout=60 * 60)
