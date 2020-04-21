@@ -46,7 +46,6 @@ class RequestFileFallback:
 
     @staticmethod
     def download_or_fallback(url, path, max_age=60*60):
-        print('FILE AGE IS', RequestFileFallback.file_age(path))
         if not RequestFileFallback.file_exists(path) or RequestFileFallback.file_age(path) > max_age:
             return RequestFileFallback.download_to_df(url, path)
         try:
