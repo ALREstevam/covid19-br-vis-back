@@ -74,12 +74,10 @@ class WcotaCsv:
         df = WcotaCsv.df(url)
         df = df [ df['state'] != 'TOTAL' ]
 
-        df["lat"] = np.nan
-        df["long"] = np.nan
-
+        df.insert(len(df.columns), 'lat', np.nan)
+        df.insert(len(df.columns), 'long', np.nan)
 
         df.loc[:, 'date'] = df.apply(lambda row: dateutil.parser.parse(row['date']), axis=1)
-        # df.loc[(df['city'].str.startswith('INDEFINIDA/')),'city'] = ''
 
         df.loc[:, 'lat'] = df.apply(lat, axis=1) 
         df.loc[:, 'long'] = df.apply(long, axis=1) 
