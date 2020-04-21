@@ -10,25 +10,31 @@ Using data from [github.com/wcota/covid19br](https://github.com/wcota/covid19br)
 Currently the API only have two endpoints, so, putting it simply:
 
 
-## `[GET] <address>/br/cities`
+## `[GET] http://<...>/api/v1/br/cities`
 
 Will gather data from: [https://github.com/wcota/covid19br/blob/master/cases-brazil-cities-time_changesOnly.csv](https://github.com/wcota/covid19br/blob/master/cases-brazil-cities-time_changesOnly.csv).
 
 You can use the query param`response_type`, the expected values are `geojson` or `json`, leaving it empty `json` will be used.
 
+[Run on deployed](https://cvid19-back.herokuapp.com/api/v1/br/cities)
 
 
-## `[GET] <address>/br/cities-daily`
+## `[GET] http://<...>/api/v1/br/cities-daily`
 
 Will gather data from: [https://github.com/wcota/covid19br/blob/master/cases-brazil-cities-time.csv](https://github.com/wcota/covid19br/blob/master/cases-brazil-cities-time.csv).
 
 You can use the query param`response_type`, the expected values are `geojson` or `json`, leaving it empty `json` will be used.
 
+[Run on deployed](https://cvid19-back.herokuapp.com/api/v1/br/cities-daily)
 
 
-## `<address>/br/cities[-daily]?response_type=json`
+## `http://<...>/api/v1/br/cities[-daily]?response_type=json`
 
-The response uses a general json fromat.
+[Run on deployed - cities as json](https://cvid19-back.herokuapp.com/api/v1/br/cities?response_type=json)
+[Run on deployed - cities daily as json](https://cvid19-back.herokuapp.com/api/v1/br/cities-daily?response_type=json)
+
+
+The response uses a general json format.
 
 ```json
 [
@@ -53,9 +59,12 @@ The response uses a general json fromat.
 
 
 
-## `<address>/br/cities[-daily]?response_type=geojson`
+## `http://<...>/api/v1/br/cities[-daily]?response_type=geojson`
 
 The result uses the geojson format.
+
+[Run on deployed - cities as geojson](https://cvid19-back.herokuapp.com/api/v1/br/cities?response_type=geojson)
+[Run on deployed - cities-daily as geojson](https://cvid19-back.herokuapp.com/api/v1/br/cities-daily?response_type=geojson)
 
 ```json
 {
