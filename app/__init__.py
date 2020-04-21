@@ -47,10 +47,11 @@ update_files_every([ (wcota.IBGE_URL, wcota.IBGE_FILE) ], 60*60)
 
 tl.start(block=False)
 
-wcota.exercise()
-
-print('CACHE BUILT')
-
+@app.route('/build-cache')
+def cache():
+    wcota.exercise()
+    print('CACHE BUILT')
+    return jsonify({'success': 'cache build'})
 
 @app.route("/", methods = ['GET'])
 def main():
