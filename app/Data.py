@@ -26,6 +26,7 @@ class WcotaCsv:
         self.IBGE_CSV = 'https://raw.githubusercontent.com/kelvins/Municipios-Brasileiros/master/csv/municipios.csv'
     
     @staticmethod
+    @memorize(timeout=60 * 60)
     def df(url):
         '''
         Downloads a csv file and convers it to a Pandas Dataframe
@@ -33,7 +34,7 @@ class WcotaCsv:
         print(f'DOWNLOADING {url}')
         return pd.read_csv(url)
 
-
+    @memorize(timeout=60 * 60)
     def ibge_data(self):
         '''
         Generates data related to IBGE's city id
@@ -64,7 +65,7 @@ class WcotaCsv:
         return lat, long
 
 
-
+    @memorize(timeout=60 * 60)
     def generate_cities_time_df(self):
         '''
         Generates a Datafraeme from `self.WCOTA_CSV`
