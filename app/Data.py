@@ -66,16 +66,14 @@ class WcotaCsv:
 
 
     @memorize(timeout=60 * 60)
-    def generate_cities_time_df(self):
-        '''
-        Generates a Datafraeme from `self.WCOTA_CSV`
-        '''
+    def default_df(self, url):
         df_ibge, capitals = self.ibge_data()
         lat, long = self.lat_long_apply(df_ibge, capitals)
 
-        df = WcotaCsv.df(self.WCOTA_CITIES_TIME_CSV)
+        df = WcotaCsv.df(url)
         df = df [ df['state'] != 'TOTAL' ]
-        df['date'] = df['date'].apply(dateutil.parser.parse)
+
+        df.loc[:,'date'] = df.apply(lambda row: dateutil.parser.parse(row['date']), axis=1)
         # df.loc[(df['city'].str.startswith('INDEFINIDA/')),'city'] = ''
 
         df['lat'] = df.apply(lat, axis=1) 
@@ -84,20 +82,18 @@ class WcotaCsv:
         return df
 
     @memorize(timeout=60 * 60)
+    def generate_cities_time_df(self):
+        '''
+        Generates a Datafraeme from `self.WCOTA_CSV`
+        '''
+        return self.default_df(self.WCOTA_CITIES_TIME_CSV)
+
+    @memorize(timeout=60 * 60)
     def generate_df(self):
         '''
         Generates a Datafraeme from `self.WCOTA_CITIES_TIME_CSV`
         '''
-        df_ibge, capitals = self.ibge_data()
-        lat, long = self.lat_long_apply(df_ibge, capitals)
-        
-        df = WcotaCsv.df(self.WCOTA_CSV)
-        df['date'] = df['date'].apply(dateutil.parser.parse)
-        # df.loc[(df['city'].str.startswith('INDEFINIDA/')),'city'] = ''
-
-        df['lat'] = df.apply(lat, axis=1) 
-        df['long'] = df.apply(long, axis=1) 
-        return df
+        return self.default_df(self.WCOTA_CSV)
 
 
     @memorize(timeout=60 * 60)
