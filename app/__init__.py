@@ -3,10 +3,9 @@ from flask.json import JSONEncoder
 from flask_cors import CORS
 from flask_caching import Cache
 from datetime import time, datetime, date
-
+import markdown
 from app.Data import cache as api_data
 
-import markdown
 
 def get_docs():
     md = markdown.Markdown(extensions=['extra', 'fenced_code', 'codehilite', 'nl2br'])

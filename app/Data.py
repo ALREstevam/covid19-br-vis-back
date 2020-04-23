@@ -1,19 +1,10 @@
 import csv
-import requests
 import pandas as pd
-import io
-from filecache import filecache
 import dateutil
 import json
-import numpy.core.defchararray as npd
-from memorize import memorize
 from datetime import timezone
 import numpy as np
-import requests
 import time
-import os
-# from timeloop import Timeloop
-from datetime import timedelta
 from app.CsvDataManager import CsvDataManager, MemoryCache, df_data
 
 
