@@ -1,10 +1,10 @@
 from flask import Flask, jsonify, request
 from flask.json import JSONEncoder
-
-from datetime import time, datetime, date
 from flask_cors import CORS
+from flask_caching import Cache
+from datetime import time, datetime, date
 
-from app.Data import WcotaCsv, update_files_every, tl
+from app.Data import cache as api_data
 
 import markdown
 
@@ -29,31 +29,18 @@ class CustomJSONEncoder(JSONEncoder):
         return JSONEncoder.default(self, obj)
 
 app = Flask(__name__)
+
+
 CORS(app)
 app.json_encoder = CustomJSONEncoder
 md = markdown.Markdown()
+cache = Cache(app, config={'CACHE_TYPE': 'simple'})
 
 # Solves city names without the correct string format due to the default accentuation representation
 app.config['JSON_AS_ASCII'] = False
 
-wcota = WcotaCsv()
-
-update_files_every([
-    (wcota.WCOTA_CHANGES_ONLY_URL, wcota.WCOTA_CHANGES_ONLY_FILE),
-    (wcota.WCOTA_CITIES_TIME_URL, wcota.WCOTA_CITIES_TIME_FILE)
-], 60*3)
-        
-update_files_every([ (wcota.IBGE_URL, wcota.IBGE_FILE) ], 60*60)
-
-tl.start(block=False)
-
-@app.route('/build-cache')
-def cache():
-    wcota.exercise()
-    print('CACHE BUILT')
-    return jsonify({'success': 'cache build'})
-
 @app.route("/", methods = ['GET'])
+
 def main():
     return """
     <html>
@@ -66,18 +53,20 @@ def docs():
     return get_docs()
 
 @app.route("/api/v1/br/cities", methods = ['GET'])
+@cache.memoize(timeout=60*60)
 def cities_cases():
     response_type = request.args.get('response_type')
     if response_type and response_type == 'geojson':
-        return jsonify ( WcotaCsv.cases_geojson() )
+        return jsonify ( api_data.get('WCOTA_CHANGES_GEOJSON') )
     else:
-        return jsonify( wcota.cases_data() )
+        return jsonify( api_data.get('WCOTA_CHANGES_JSON') )
 
 
 @app.route("/api/v1/br/cities-daily", methods = ['GET'])
+@cache.memoize(timeout=60*60)
 def cities_daily():
     response_type = request.args.get('response_type')
     if response_type and response_type=='geojson':
-        return jsonify ( wcota.daily_geojson() )
+        return jsonify ( api_data.get('WCOTA_TIME_GEOJSON') ) 
     else:
-        return jsonify( wcota.daily_data() )
+        return jsonify( api_data.get('WCOTA_TIME_JSON')  )
