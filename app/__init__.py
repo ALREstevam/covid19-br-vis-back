@@ -54,22 +54,27 @@ def main():
 def docs():
     return get_docs()
 
-@app.route("/api/v1/br/cities", methods = ['GET'])
+@app.route("/api/v1/br/cities.json", methods = ['GET'])
 @cache.memoize(timeout=60*60)
-def cities_cases():
-    response_type = request.args.get('response_type')
-    if response_type and response_type == 'geojson':
-        return jsonify ( dg.load(dg.WCOTA['CHANGES_ONLY']['GEOJSON']['KEY']) )
-    else:
-        return jsonify( dg.load(dg.WCOTA['CHANGES_ONLY']['JSON']['KEY']) )
+def cities_cases_json():
+    return jsonify( dg.load(dg.WCOTA['CHANGES_ONLY']['JSON']['KEY']) )
+
+@app.route("/api/v1/br/cities.geojson", methods = ['GET'])
+@cache.memoize(timeout=60*60)
+def cities_cases_geojson():
+    return jsonify ( dg.load(dg.WCOTA['CHANGES_ONLY']['GEOJSON']['KEY']) )
 
 
-@app.route("/api/v1/br/cities-daily", methods = ['GET'])
+
+
+@app.route("/api/v1/br/cities-daily.json", methods = ['GET'])
 @cache.memoize(timeout=60*60)
-def cities_daily():
-    response_type = request.args.get('response_type')
-    if response_type and response_type=='geojson':
-        return jsonify ( dg.load(dg.WCOTA['CITIES_TIME']['GEOJSON']['KEY']) ) 
-    else:
-        return jsonify( dg.WCOTA['CITIES_TIME']['JSON']['KEY'] )
+def cities_daily_json():
+    return jsonify( dg.load(dg.WCOTA['CITIES_TIME']['JSON']['KEY']) )
+
+@app.route("/api/v1/br/cities-daily.geojson", methods = ['GET'])
+@cache.memoize(timeout=60*60)
+def cities_daily_geojson():
+    return jsonify ( dg.load(dg.WCOTA['CITIES_TIME']['GEOJSON']['KEY']) )
+
 
