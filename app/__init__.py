@@ -52,7 +52,7 @@ def docs():
     return get_docs()
 
 @app.route("/api/v1/br/cities", methods = ['GET'])
-@cache.memoize(timeout=60*60)
+#@cache.memoize(timeout=60*60)
 def cities_cases():
     response_type = request.args.get('response_type')
     if response_type and response_type == 'geojson':
@@ -62,7 +62,7 @@ def cities_cases():
 
 
 @app.route("/api/v1/br/cities-daily", methods = ['GET'])
-@cache.memoize(timeout=60*60)
+#@cache.memoize(timeout=60*60)
 def cities_daily():
     response_type = request.args.get('response_type')
     if response_type and response_type=='geojson':

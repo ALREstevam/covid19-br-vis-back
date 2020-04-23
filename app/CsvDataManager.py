@@ -92,7 +92,6 @@ class CsvDataManager(Thread):
 
         self.state = "INIT_DONE"
 
-
     def run(self):
         #self.update()
         self.live()
@@ -103,16 +102,15 @@ class CsvDataManager(Thread):
                 return 'CACHE_UPDATE'
             else:
                 return 'CACHE_LOAD'
-
         else: 
             return self.state
 
-
-
     def live(self):
+        print('[UPDATE QUEUE]', self.keys_to_update)
+        print('[KNOWN KEYS]', self.cache.cache.keys())
+
         while True:
             if len(self.keys_to_update) > 0:
-                print('[UPDATE QUEUE]', self.keys_to_update)
                 self.update(self.keys_to_update[0])
             else:
                 self.check_cache_timeout()
