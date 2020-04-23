@@ -4,7 +4,8 @@ from flask_cors import CORS
 from flask_caching import Cache
 from datetime import time, datetime, date
 import markdown
-from app.Data import WcotaCache
+
+from app.Data2 import DataGenerator
 
 
 def get_docs():
@@ -38,7 +39,7 @@ cache = Cache(app, config={'CACHE_TYPE': 'simple'})
 # Solves city names without the correct string format due to the default accentuation representation
 app.config['JSON_AS_ASCII'] = False
 
-c = WcotaCache()
+dg = DataGenerator(shelf='data', save_path='./app/static')
 
 @app.route("/", methods = ['GET'])
 
@@ -58,9 +59,9 @@ def docs():
 def cities_cases():
     response_type = request.args.get('response_type')
     if response_type and response_type == 'geojson':
-        return jsonify ( c.get_cached('WCOTA_CHANGES_GEOJSON') )
+        return jsonify ( dg.load(dg.WCOTA['CHANGES_ONLY']['GEOJSON']['KEY']) )
     else:
-        return jsonify( c.get_cached('WCOTA_CHANGES_JSON') )
+        return jsonify( dg.load(dg.WCOTA['CHANGES_ONLY']['JSON']['KEY']) )
 
 
 @app.route("/api/v1/br/cities-daily", methods = ['GET'])
@@ -68,6 +69,7 @@ def cities_cases():
 def cities_daily():
     response_type = request.args.get('response_type')
     if response_type and response_type=='geojson':
-        return jsonify ( c.get_cached('WCOTA_TIME_GEOJSON') ) 
+        return jsonify ( dg.load(dg.WCOTA['CITIES_TIME']['GEOJSON']['KEY']) ) 
     else:
-        return jsonify( c.get_cached('WCOTA_TIME_JSON')  )
+        return jsonify( dg.WCOTA['CITIES_TIME']['JSON']['KEY'] )
+
