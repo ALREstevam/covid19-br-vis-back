@@ -1,8 +1,8 @@
 certifi==2020.4.5.1
 chardet==3.0.4
 click==7.1.1
-filecache==0.77
 Flask==1.1.2
+Flask-Caching==1.8.0
 Flask-Cors==3.0.8
 gunicorn==20.0.4
 idna==2.9
@@ -11,7 +11,6 @@ Jinja2==2.11.2
 Markdown==3.2.1
 MarkupSafe==1.1.1
 marshmallow==3.5.1
-memorize==0.1.1
 numpy==1.18.3
 pandas==1.0.3
 python-dateutil==2.8.1
@@ -19,7 +18,6 @@ python-dotenv==0.13.0
 pytz==2019.3
 requests==2.23.0
 six==1.14.0
-timeloop==1.0.2
 urllib3==1.25.9
 webargs==5.5.3
 Werkzeug==1.0.1
