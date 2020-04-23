@@ -128,7 +128,8 @@ class WcotaCache:
         ]
 
         thread = CsvDataManager(self.cache, update_cycle=10, cache_id='cache', dfs_data=dfs_data)
-        thread.start()
+        thread.live()
+        #thread.start()
 
 
     def ibge_data(self):
