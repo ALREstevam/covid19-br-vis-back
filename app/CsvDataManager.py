@@ -27,7 +27,7 @@ class MemoryCache:
         self.data_source = None
 
     def set(self, key, value, timeout):
-        print(f'[CACHING] `{key}`')
+        print(f'[SETTING] `{key}`')
         self.cache[key] = {
             'created': time.time(),
             'timeout': timeout,
@@ -35,6 +35,8 @@ class MemoryCache:
         }
 
     def get(self, key):
+        print(self.cache)
+        print(self.cache[key])
         return self.cache[key]['value']
 
     def bind(self, me):
@@ -83,8 +85,6 @@ class CsvDataManager(Thread):
         self.update_cycle = update_cycle
 
         print(f'[WILL UPDATE] {self.keys_to_update}')
-
-        self.unserialize()
 
         for key in self.load_keys:
             if key not in self.cache.cache.keys():
@@ -148,34 +148,6 @@ class CsvDataManager(Thread):
     def finish(self):
         self.join()
 
-    def unserialize(self):
-        print('[UNSERIALIZING]')
-        path = './app/static/'+self.cache_id
-        if file_exists(path):
-            with shelve.open(path) as shelf:
-                for key in self.load_keys:
-                    if key in shelf and shelf[key] is not None:
-                        print('[RECOVERED]', key)
-                        self.cache.set(key, shelf[key]['value'], shelf[key]['timeout'])
-        else:
-            print('[CACHE FILE NOT EXISTS]')
-            print('[INITIALIZE WITH INFO]')
-            for key in self.load_keys:
-                self.request_update(key)
-
-    def serialize(self):
-        print('[SERIALIZING] ...')
-        with shelve.open('./app/static/'+self.cache_id) as shelf:
-             for key in self.cache.cache.keys():
-                 print('[SERIALIZING]', key)
-                 shelf[key] = self.cache.cache[key]
-
-    def serialize_key(self, key):
-        with shelve.open('./app/static/'+self.cache_id) as shelf:
-            print('[SERIALIZING]', key)
-            shelf[key] = self.cache.cache[key]
-
-
     def update(self, df_key):
         print("[UPDATE]", df_key)
         df_data = self.dfs_data[df_key]
@@ -186,7 +158,6 @@ class CsvDataManager(Thread):
         )
         self.cache.set(df_key, data, df_data['timeout_to_update'])
         self.keys_to_update.remove(df_key)
-        self.serialize_key(df_key)
 
     def update_(self, df_key):
         data = [random.randint(0,10), random.randint(0,10), random.randint(0,10), random.randint(0,10)]
