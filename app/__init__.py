@@ -4,7 +4,7 @@ from flask_cors import CORS
 from flask_caching import Cache
 from datetime import time, datetime, date
 import markdown
-from app.Data import cache as api_data
+from app.Data import WcotaCache
 
 
 def get_docs():
@@ -38,6 +38,8 @@ cache = Cache(app, config={'CACHE_TYPE': 'simple'})
 # Solves city names without the correct string format due to the default accentuation representation
 app.config['JSON_AS_ASCII'] = False
 
+c = WcotaCache()
+
 @app.route("/", methods = ['GET'])
 
 def main():
@@ -56,9 +58,9 @@ def docs():
 def cities_cases():
     response_type = request.args.get('response_type')
     if response_type and response_type == 'geojson':
-        return jsonify ( api_data.get('WCOTA_CHANGES_GEOJSON') )
+        return jsonify ( c.get_cached('WCOTA_CHANGES_GEOJSON') )
     else:
-        return jsonify( api_data.get('WCOTA_CHANGES_JSON') )
+        return jsonify( c.get_cached('WCOTA_CHANGES_JSON') )
 
 
 @app.route("/api/v1/br/cities-daily", methods = ['GET'])
@@ -66,6 +68,6 @@ def cities_cases():
 def cities_daily():
     response_type = request.args.get('response_type')
     if response_type and response_type=='geojson':
-        return jsonify ( api_data.get('WCOTA_TIME_GEOJSON') ) 
+        return jsonify ( c.get_cached('WCOTA_TIME_GEOJSON') ) 
     else:
-        return jsonify( api_data.get('WCOTA_TIME_JSON')  )
+        return jsonify( c.get_cached('WCOTA_TIME_JSON')  )
