@@ -1,5 +1,4 @@
 import requests
-import asyncio
 import pandas as pd
 import shelve
 from threading import Thread
@@ -35,9 +34,10 @@ class MemoryCache:
         }
 
     def get(self, key):
-        print(self.cache)
-        print(self.cache[key])
-        return self.cache[key]['value']
+        print(f'GETTING KEY {key}')
+        if key in self.cache.keys():
+            return self.cache[key]['value']
+        return 'NOT FOUND'
 
     def bind(self, me):
         self.data_source = me
