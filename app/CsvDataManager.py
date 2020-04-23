@@ -35,6 +35,7 @@ class MemoryCache:
 
     def get(self, key):
         print(f'GETTING KEY {key}')
+        print(f'KNOWN KEYS {list(self.cache.keys())}')
         if key in self.cache.keys():
             return self.cache[key]['value']
         return 'NOT FOUND'
