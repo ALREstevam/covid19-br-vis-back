@@ -33,12 +33,11 @@ class MemoryCache:
             'value': value, 
         }
 
-    def get(self, key):
+    def get_key(self, key):
         print(f'GETTING KEY {key}')
         print(f'KNOWN KEYS {list(self.cache.keys())}')
-        if key in self.cache.keys():
-            return self.cache[key]['value']
-        return 'NOT FOUND'
+        
+        return self.cache[key]['value']
 
     def bind(self, me):
         self.data_source = me
