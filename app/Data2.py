@@ -19,6 +19,7 @@ class DataGenerator:
         self.shelf = shelf
         self.save_path = save_path
 
+        self.loaded = {}
 
 
         self.WCOTA = {
@@ -81,6 +82,7 @@ class DataGenerator:
 
     def load(self, key):
         with shelve.open(self.save_path + '/' + self.shelf) as s:
+            self.loaded[key] = s[key]
             return s[key]
             
     @staticmethod
