@@ -60,24 +60,24 @@ def docs():
     return get_docs()
 
 @app.route("/api/v1/br/cities.json", methods = ['GET'])
-@cache.memoize(timeout=60*60)
+@cache.memoize(timeout=60*60*3)
 def cities_cases_json():
     return jsonify( dg.loaded[dg.WCOTA['CHANGES_ONLY']['JSON']['KEY']] )
 
 @app.route("/api/v1/br/cities.geojson", methods = ['GET'])
-@cache.memoize(timeout=60*60)
+@cache.memoize(timeout=60*60*3)
 def cities_cases_geojson():
     return jsonify( dg.loaded[dg.WCOTA['CHANGES_ONLY']['GEOJSON']['KEY']] )
 
 
 @app.route("/api/v1/br/cities-daily.json", methods = ['GET'])
-@cache.memoize(timeout=60*60)
+@cache.memoize(timeout=60*60*3)
 def cities_daily_json():
     return jsonify( dg.loaded[dg.WCOTA['CITIES_TIME']['JSON']['KEY']] )
 
 @app.route("/api/v1/br/cities-daily.geojson", methods = ['GET'])
-@cache.memoize(timeout=60*60)
+@cache.memoize(timeout=60*60*3)
 def cities_daily_geojson():
-    return jsonify ( dg.loaded[dg.WCOTA['CITIES_TIME']['JSON']['GEOJSON']]  )
+    return jsonify ( dg.loaded[dg.WCOTA['CITIES_TIME']['GEOJSON']['KEY']]  )
 
 
