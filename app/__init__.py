@@ -1,12 +1,9 @@
 from flask import Flask, jsonify, request
 from flask.json import JSONEncoder
 from flask_cors import CORS
-from flask_caching import Cache
 from datetime import time, datetime, date
 import markdown
-
-from app.Data2 import DataGenerator
-
+from app.DataGen import DataGen
 
 def get_docs():
     md = markdown.Markdown(extensions=['extra', 'fenced_code', 'codehilite', 'nl2br'])
@@ -33,21 +30,13 @@ app = Flask(__name__)
 
 CORS(app)
 app.json_encoder = CustomJSONEncoder
+app.config['JSON_AS_ASCII'] = False
 md = markdown.Markdown()
-cache = Cache(app, config={'CACHE_TYPE': 'simple'})
+data = DataGen().load_json_data()
 
 # Solves city names without the correct string format due to the default accentuation representation
-app.config['JSON_AS_ASCII'] = False
-
-dg = DataGenerator(shelf='data', save_path='./app/static')
-
-dg.load(dg.WCOTA['CHANGES_ONLY']['JSON']['KEY'])
-dg.load(dg.WCOTA['CHANGES_ONLY']['GEOJSON']['KEY']) 
-dg.load(dg.WCOTA['CITIES_TIME']['JSON']['KEY'])
-dg.load(dg.WCOTA['CITIES_TIME']['GEOJSON']['KEY'])
 
 @app.route("/", methods = ['GET'])
-
 def main():
     return """
     <html>
@@ -60,24 +49,48 @@ def docs():
     return get_docs()
 
 @app.route("/api/v1/br/cities.json", methods = ['GET'])
-@cache.memoize(timeout=60*60*3)
 def cities_cases_json():
-    return jsonify( dg.loaded[dg.WCOTA['CHANGES_ONLY']['JSON']['KEY']] )
+    return app.response_class(response=data.get_json('PYJSON-CASES-CITIES-TIME'),
+                              status=200,
+                              mimetype='application/json'
+                              )
 
-@app.route("/api/v1/br/cities.geojson", methods = ['GET'])
-@cache.memoize(timeout=60*60*3)
+
+@app.route("/api/v1/br/cities.geojson", methods=['GET'])
 def cities_cases_geojson():
-    return jsonify( dg.loaded[dg.WCOTA['CHANGES_ONLY']['GEOJSON']['KEY']] )
+    return app.response_class(response=data.get_json('PYGEOJSON-CASES-CITIES-TIME'),
+                              status=200,
+                              mimetype='application/json'
+                              )
 
 
-@app.route("/api/v1/br/cities-daily.json", methods = ['GET'])
-@cache.memoize(timeout=60*60*3)
+@app.route("/api/v1/br/cities-daily.json", methods=['GET'])
 def cities_daily_json():
-    return jsonify( dg.loaded[dg.WCOTA['CITIES_TIME']['JSON']['KEY']] )
+    return app.response_class(response=data.get_json('PYJSON-CASES-CITIES-TIME-CHANGESONLY'),
+                              status=200,
+                              mimetype='application/json'
+                              )
 
-@app.route("/api/v1/br/cities-daily.geojson", methods = ['GET'])
-@cache.memoize(timeout=60*60*3)
+
+@app.route("/api/v1/br/cities-daily.geojson", methods=['GET'])
 def cities_daily_geojson():
-    return jsonify ( dg.loaded[dg.WCOTA['CITIES_TIME']['GEOJSON']['KEY']]  )
+    return app.response_class(response=data.get_json('PYGEOJSON-CASES-CITIES-TIME-CHANGESONLY'),
+                              status=200,
+                              mimetype='application/json'
+                              )
 
 
+@app.route("/api/v1/br/states.json", methods=['GET'])
+def states_json():
+    return app.response_class(response=data.get_json('PYJSON-CASES-STATES'),
+                              status=200,
+                              mimetype='application/json'
+                              )
+
+
+@app.route("/api/v1/br/states.geojson", methods=['GET'])
+def states_geojson():
+    return app.response_class(response=data.get_json('PYGEOJSON-CASES-STATES'),
+                              status=200,
+                              mimetype='application/json'
+                              )
