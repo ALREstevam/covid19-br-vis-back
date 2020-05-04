@@ -1,6 +1,7 @@
 from flask import Flask, jsonify, request
 from flask.json import JSONEncoder
 from flask_cors import CORS
+from flask_compress import Compress
 from datetime import time, datetime, date
 import markdown
 from app.DataGen import DataGen
@@ -26,9 +27,8 @@ class CustomJSONEncoder(JSONEncoder):
         return JSONEncoder.default(self, obj)
 
 app = Flask(__name__)
-
-
 CORS(app)
+Compress(app)
 app.json_encoder = CustomJSONEncoder
 app.config['JSON_AS_ASCII'] = False
 md = markdown.Markdown()
