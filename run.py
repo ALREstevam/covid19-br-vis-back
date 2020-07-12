@@ -1,4 +1,4 @@
-from app import app
+from app import register_endpoints
 import sys
 
 if __name__ == '__main__':
@@ -11,6 +11,7 @@ if __name__ == '__main__':
             .run()\
             .serialize_json_path()
     else:
-        app.run()
+        print("= RUNNING SERVER =")
+        register_endpoints().run()
 
 

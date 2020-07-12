@@ -7,6 +7,7 @@ import pandas as pd
 import logging
 import os
 import shelve
+from zipfile import ZipFile as zf, ZIP_DEFLATED
 
 logging.basicConfig(level=os.environ.get("LOGLEVEL", "INFO"))
 log = logging.getLogger(__name__)
@@ -151,20 +152,25 @@ class DataGen:
         }
 
         self.processed = {}
-
         self.json_files = {}
 
     def json_saver(self, data, file_name, do_save=True):
         if do_save:
             log.info(f'SAVING {file_name} as JSON')
             json_str = Data2Json().as_json(data)
-            path = r'./app/static/json/' + file_name + '.json'
-            with open(path, 'w') as file:
-                file.write(json_str)
-                self.json_files[file_name] = {
-                    'file_name': file_name,
-                    'path': path,
-                }
+            
+            zip_path = r'./app/static/zip_json/' + file_name + '.zip'
+            json_file = r'content.json'
+
+            with zf(zip_path, mode='w', compression=ZIP_DEFLATED) as file:
+                file.writestr(json_file, json_str)
+
+                
+            self.json_files[file_name] = {
+                'file_name': file_name,
+                'path': zip_path,
+            }
+
         return data
 
     def download(self):
@@ -262,8 +268,14 @@ class DataGen:
                 #log.info(f'READING "{key}"')
                 finfo = json_files[key]
                 print(f'READING "{key}"')
-                with open(finfo['path']) as file:
-                    self.processed[finfo['file_name']] = file.read()
+
+                if str(finfo['path']).endswith('.zip'):
+                    self.processed[finfo['file_name']] = zf(finfo['path'])\
+                        .read('content.json')\
+                        .decode('UTF-8')
+                if str(finfo['path']).endswith('.json'):
+                    with open(finfo['path']) as file:
+                        self.processed[finfo['file_name']] = file.read()
         return self
 
     def get_json(self, key):
